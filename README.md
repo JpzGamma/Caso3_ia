@@ -40,9 +40,10 @@ La interfaz se abrirá automáticamente en el navegador predeterminado
 ## 🧪 Pasos para probar todo el proyecto:
 
 1) Ejecutar workflow Caso 3/Agente-clasificacion-malware
-2) Ejecutar Caso3 sin http
-3) Click derecho en index.html y ejecutar el live server
-4) Ingresar pregunta de prueba :
+2) Validar que exista el workflow buscar_hash_en_siem_subworkflow
+3) Ejecutar workflow  Caso3 sin http
+4) Click derecho en index.html y ejecutar el live server
+5) Ingresar pregunta de prueba :
    
 -¿Qué técnicas utiliza la familia de malware TrickBot dentro de la red?
 

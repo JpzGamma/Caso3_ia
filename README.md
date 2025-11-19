@@ -26,30 +26,34 @@ code .
 
 2) Instala la extensión Live Server:
 
-Ctrl + Shift + X
+-Ctrl + Shift + X
 
-Buscar Live Server
+-Buscar Live Server
 
-Instalar
+-Instalar
 
 3) En el archivo index.html, clic derecho → Open with Live Server.
 
 La interfaz se abrirá automáticamente en el navegador predeterminado
 
-## 🧪 Preguntas de prueba (para validar tu flujo n8n)
 
-Utiliza estas preguntas para probar el asistente y verificar el comportamiento del RAG, guardrail y consultas simuladas al SIEM:
+## 🧪 Pasos para probar todo el proyecto:
 
-1) ¿Qué técnicas utiliza la familia de malware TrickBot dentro de la red?
+1) Ejecutar workflow Caso 3/Agente-clasificacion-malware
+2) Ejecutar Caso3 sin http
+3) Click derecho en index.html y ejecutar el live server
+4) Ingresar pregunta de prueba :
+   
+-¿Qué técnicas utiliza la familia de malware TrickBot dentro de la red?
 
-2) Busca el hash 4e4e0b0e95 en nuestros logs y dime si se ha detectado.
+-Busca el hash 4e4e0b0e95 en nuestros logs y dime si se ha detectado.
 
-3) ¿Cuál es la fórmula química del agua?
+-¿Cuál es la fórmula química del agua?
 
-4) Revisa en el SIEM si el hash aaaaaaaaaaaaaa se ha visto recientemente y en qué host.
+-Revisa en el SIEM si el hash aaaaaaaaaaaaaa se ha visto recientemente y en qué host.
 
-5) Revisa en el SIEM si el hash 7f8a9b1c2d se ha visto recientemente y en qué host.
+-Revisa en el SIEM si el hash 7f8a9b1c2d se ha visto recientemente y en qué host.
 
-6) Revisa en el SIEM si el hash 9a8b7c6d5e se ha visto recientemente y en qué host.
+-Revisa en el SIEM si el hash 9a8b7c6d5e se ha visto recientemente y en qué host.
 
-7) ¿Cómo se caracteriza el ransomware Ryuk en nuestra base de datos de malware?
+-¿Cómo se caracteriza el ransomware Ryuk en nuestra base de datos de malware?

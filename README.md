@@ -36,6 +36,7 @@ code .
 
 La interfaz se abrirá automáticamente en el navegador predeterminado
 
+Nota : En config.js se configura el webhook que en este caso seria el de mi workflow Caso 3 sin http
 
 ## 🧪 Pasos para probar todo el proyecto:
 

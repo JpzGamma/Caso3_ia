@@ -1,0 +1,303 @@
+:root {
+    --primary-1: #6366f1;
+    --primary-2: #a855f7;
+    --bg-panel: rgba(15, 23, 42, 0.8);
+    --border-soft: rgba(148, 163, 184, 0.4);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    color: #e5e7eb;
+    background:
+        radial-gradient(circle at top, #3b82f6 0, #111827 40%, #020617 100%);
+}
+
+.main-wrapper {
+    display: grid;
+    grid-template-columns: minmax(260px, 340px) minmax(320px, 420px) minmax(320px, 420px);
+    gap: 24px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.panel {
+    background: var(--bg-panel);
+    border-radius: 22px;
+    padding: 24px 24px 20px;
+    backdrop-filter: blur(18px);
+    border: 1px solid var(--border-soft);
+    box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 20px 45px rgba(15, 23, 42, 0.95);
+}
+
+.panel:hover {
+    box-shadow:
+        0 0 0 1px rgba(99, 102, 241, 0.5),
+        0 22px 50px rgba(30, 64, 175, 0.95);
+}
+
+/* --- BOT PANEL --- */
+.bot-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.bot-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 999px;
+    padding: 8px;
+    background: radial-gradient(circle at 25% 0, var(--primary-2), var(--primary-1));
+    box-shadow: 0 0 40px rgba(129, 140, 248, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.bot-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    object-fit: cover;
+}
+
+.bot-avatar.thinking {
+    animation: botPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes botPulse {
+    0%   { transform: scale(1); box-shadow: 0 0 30px rgba(129, 140, 248, 0.5); }
+    50%  { transform: scale(1.05); box-shadow: 0 0 55px rgba(129, 140, 248, 1); }
+    100% { transform: scale(1); box-shadow: 0 0 30px rgba(129, 140, 248, 0.5); }
+}
+
+.bot-name {
+    font-weight: 600;
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.bot-role {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #9ca3af;
+    margin-bottom: 12px;
+}
+
+.bot-status {
+    font-size: 13px;
+    color: #cbd5f5;
+    background: rgba(15, 23, 42, 0.9);
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bot-status i {
+    color: #22c55e;
+    font-size: 10px;
+}
+
+/* --- FORM PANEL --- */
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.container h1 {
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: #e5e7eb;
+}
+
+.container .subtitle {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 16px;
+}
+
+textarea {
+    width: 100%;
+    padding: 14px 14px 12px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    border-radius: 14px;
+    resize: vertical;
+    font-size: 15px;
+    font-family: inherit;
+    color: #e5e7eb;
+    min-height: 120px;
+    outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+
+textarea::placeholder {
+    color: #6b7280;
+}
+
+textarea:focus {
+    border-color: var(--primary-1);
+    box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.4);
+    background: rgba(15, 23, 42, 0.98);
+}
+
+button {
+    width: 100%;
+    padding: 13px 16px;
+    margin-top: 14px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--primary-1), var(--primary-2));
+    color: #f9fafb;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 0 24px rgba(129, 140, 248, 0.8);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+button i {
+    font-size: 14px;
+}
+
+button:hover {
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 0 0 32px rgba(167, 139, 250, 0.95);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 0 18px rgba(129, 140, 248, 0.7);
+}
+
+button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+#response {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.success {
+    background-color: rgba(22, 163, 74, 0.1);
+    color: #bbf7d0;
+    border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.error {
+    background-color: rgba(248, 113, 113, 0.12);
+    color: #fecaca;
+    border: 1px solid rgba(248, 113, 113, 0.6);
+}
+
+footer {
+    margin-top: 16px;
+    font-size: 11px;
+    color: #6b7280;
+    text-align: left;
+}
+
+/* --- ANSWER PANEL --- */
+.response-container h2 {
+    font-weight: 600;
+    font-size: 20px;
+    margin: 0 0 14px;
+    color: #e5e7eb;
+}
+
+.response-subtitle {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-bottom: 10px;
+}
+
+#n8nResponse {
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: 16px;
+    padding: 18px 18px 16px;
+    min-height: 180px;
+    font-size: 14px;
+    color: #d1d5db;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#n8nResponse.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#n8nResponse.loading {
+    opacity: 1;
+}
+
+#n8nResponse.loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 0 0, rgba(129, 140, 248, 0.12), transparent 55%);
+    pointer-events: none;
+}
+
+.answer-loading-text::after {
+    content: '...';
+    display: inline-block;
+    animation: dots 1s steps(3, end) infinite;
+}
+
+@keyframes dots {
+    0%   { content: ''; }
+    33%  { content: '.'; }
+    66%  { content: '..'; }
+    100% { content: '...'; }
+}
+
+@media (max-width: 1024px) {
+    .main-wrapper {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 800px) {
+    .main-wrapper {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

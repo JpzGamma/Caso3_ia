@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamma SOC Assistant</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- CSS externo -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="main-wrapper">
+
+        <!-- Panel del Bot -->
+        <div class="panel bot-panel">
+            <div id="botAvatar" class="bot-avatar">
+                <img src="./assets/muñeco_ia.png" alt="IA Bot">
+            </div>
+            <div class="bot-name">Gamma SOC Assistant</div>
+            <div class="bot-role">Agente de IA para Malware & SIEM</div>
+
+            <div id="botStatus" class="bot-status">
+                <i class="fas fa-circle"></i>
+                Listo para recibir tu pregunta.
+            </div>
+        </div>
+
+        <!-- Panel de Pregunta -->
+        <div class="panel container">
+            <div>
+                <h1>Envía tu Pregunta</h1>
+                <div class="subtitle">
+                    Formula tus dudas sobre familias de malware o hashes a consultar en el SIEM.
+                </div>
+
+                <form id="questionForm">
+                    <textarea id="question" placeholder="Ej: ¿Qué técnicas utiliza TrickBot dentro de la red?" rows="5" required></textarea>
+
+                    <button type="submit">
+                        <i class="fas fa-paper-plane"></i>
+                        Enviar Pregunta
+                    </button>
+                </form>
+
+                <div id="response"></div>
+            </div>
+
+            <footer>Conectado a n8n Webhook · Gamma Ingenieros</footer>
+        </div>
+
+        <!-- Panel de Respuesta -->
+        <div class="panel response-container">
+            <h2>Respuesta de n8n</h2>
+            <div class="response-subtitle">
+                La IA consulta el guardrail, el RAG y, si aplica, el SIEM para construir esta respuesta.
+            </div>
+            <div id="n8nResponse">Esperando respuesta...</div>
+        </div>
+    </div>
+
+    <!-- Variables de entorno -->
+    <script src="config.js"></script>
+
+    <!-- JS principal -->
+    <script src="app.js"></script>
+</body>
+</html>

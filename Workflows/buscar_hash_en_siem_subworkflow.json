@@ -1,0 +1,58 @@
+{
+  "name": "buscar_hash_en_siem_subworkflow",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// 1. Leer el hash desde las distintas posibles ubicaciones\nlet hash =\n  ($json.hash_sha256 ||              // opción 1: nombre clásico\n   $json.Hash ||                     // opción 2: el que viene del workflow grande\n   $json.question ||                 // opción 3: desde el formulario HTML\n   ($json.body && $json.body.hash_sha256) || // opción 4: body.hash_sha256\n   ($json.body && $json.body.question) ||    // opción 5: body.question\n   \"\"\n  ).trim().toLowerCase();\n\n// 2. \"Base de datos\" simulada del SIEM\nlet encontrado = false;\nlet ubicacion = null;\nlet ultimo_visto = null;\nlet severidad = null;\n\nif (hash === \"4e4e0b0e95\") {\n  encontrado = true;\n  ubicacion = \"SRV-WIN-LOGS-01\";\n  ultimo_visto = \"2025-11-10T10:15:00Z\";\n  severidad = \"alta\";\n} else if (hash === \"aaaaaaaaaaaaaa\") {\n  encontrado = true;\n  ubicacion = \"PC-USUARIO-01\";\n  ultimo_visto = \"2025-11-09T08:30:00Z\";\n  severidad = \"media\";\n} else if (hash === \"7f8a9b1c2d\") {\n  encontrado = true;\n  ubicacion = \"SRV-LINUX-WEB-02\";\n  ultimo_visto = \"2025-11-17T14:30:00Z\";\n  severidad = \"critica\";\n} else if (hash === \"b3c4d5e6f7\") {\n  encontrado = true;\n  ubicacion = \"SRV-DB-PROD-01\";\n  ultimo_visto = \"2025-11-16T09:45:00Z\";\n  severidad = \"alta\";\n} else if (hash === \"9a8b7c6d5e\") {\n  encontrado = true;\n  ubicacion = \"FIREWALL-DMZ-01\";\n  ultimo_visto = \"2025-11-15T22:10:00Z\";\n  severidad = \"baja\";\n} else if (hash === \"1234567890abcdef\") {\n  encontrado = true;\n  ubicacion = \"SRV-EMAIL-GATEWAY\";\n  ultimo_visto = \"2025-11-14T16:20:00Z\";\n  severidad = \"media\";\n} else if (hash === \"fedcba0987654321\") {\n  encontrado = true;\n  ubicacion = \"PROXY-SERVER-01\";\n  ultimo_visto = \"2025-11-13T11:05:00Z\";\n  severidad = \"baja\";\n} else if (hash === \"a1b2c3d4e5f6g7h8\") {\n  encontrado = true;\n  ubicacion = \"SRV-DNS-INTERNO\";\n  ultimo_visto = \"2025-11-12T19:45:00Z\";\n  severidad = \"alta\";\n} else {\n  encontrado = false;\n  ubicacion = null;\n  ultimo_visto = null;\n  severidad = \"desconocida\";\n}\n\n// 3. Mensaje de observación\nconst observacion = encontrado\n  ? `El hash ${hash} fue detectado en el host ${ubicacion} el ${ultimo_visto} con severidad ${severidad}.`\n  : `El hash ${hash} no ha sido detectado en los registros consultados del SIEM.`;\n\n// 4. Salida para el resto del flujo\nreturn [\n  {\n    json: {\n      hash_sha256: hash,\n      encontrado,\n      ubicacion,\n      ultimo_visto,\n      severidad,\n      observacion,\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        -48
+      ],
+      "id": "20261386-255e-41e7-954b-cbfb7fe21008",
+      "name": "Simular consulta SIEM"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -48
+      ],
+      "id": "3c510004-e894-4ac1-a1e0-33d3f1c81398",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Simular consulta SIEM": {
+      "main": [
+        []
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Simular consulta SIEM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f267a8b0-4f4e-4b93-977c-34b637d8d8f0",
+  "meta": {
+    "instanceId": "2ab2eedd701691bc9deb393150d0f34cdb4a895536b6bb6297c19755623506a6"
+  },
+  "id": "3RDk1WnvBBeTDW2T",
+  "tags": []
+}

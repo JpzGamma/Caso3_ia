@@ -1,0 +1,436 @@
+{
+  "name": "Caso 3 sin http",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agente-malware",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -912,
+        -16
+      ],
+      "id": "d002ac1e-f7bb-4a9c-ba62-7af8af1ae965",
+      "name": "Webhook - Agente malware",
+      "webhookId": "d22621d6-4386-46f2-9336-14186a3a1946"
+    },
+    {
+      "parameters": {
+        "model": "mistral:7b"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        192
+      ],
+      "id": "dceef3d2-6591-41ab-a6ad-edc16ef00821",
+      "name": "Embeddings Ollama",
+      "credentials": {
+        "ollamaApi": {
+          "id": "TYKsErtw0DbV3rPR",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "memoryKey": {
+          "__rl": true,
+          "value": "vectore_store_malware",
+          "mode": "list",
+          "cachedResultName": "vectore_store_malware"
+        },
+        "prompt": "={{ $json.pregunta_sanitizada }}",
+        "topK": 8
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        -448,
+        -16
+      ],
+      "id": "38791577-f02d-4b01-b327-52c0b0bfc567",
+      "name": "RAG – malware (Get ranked docs)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Intentar recuperar la pregunta sanitizada\n\nlet pregunta = \"\";\n\n// Intentar leerla directamente del item actual (por si RAG la pasó hacia adelante)\nif ($json.pregunta_sanitizada) {\n  pregunta = $json.pregunta_sanitizada;\n} else {\n  // Si no está aquí, intentamos leerla desde el nodo \"Sanitizar pregunta\"\n  try {\n    const sanItems = $items(\"Sanitizar pregunta\");\n    if (Array.isArray(sanItems) && sanItems.length > 0) {\n      const sanJson = sanItems[0].json || {};\n      if (sanJson.pregunta_sanitizada) {\n        pregunta = sanJson.pregunta_sanitizada;\n      }\n    }\n  } catch (e) {\n    // Si falla, dejamos pregunta = \"\"\n  }\n}\n\n// 2. Construir el contexto a partir de los documentos devueltos por el Simple Vector Store\n\nconst items = $input.all();\nlet contexto = \"\";\n\nfor (const item of items) {\n  let texto = \"\";\n\n  if (item.json.document && item.json.document.pageContent) {\n    texto = item.json.document.pageContent;\n  } else if (item.json.pageContent) {\n    texto = item.json.pageContent;\n  } else if (item.json.texto) {\n    texto = item.json.texto;\n  } else if (item.json.text) {\n    texto = item.json.text;\n  }\n\n  // ⬅️ FILTRO: ignorar los docs que son solo \"analisis_malware\"\n  if (texto && texto.trim().toLowerCase() !== \"analisis_malware\") {\n    contexto += texto + \"\\n---\\n\";\n  }\n}\n\n// 3. Devolver un solo item con la pregunta y el contexto RAG\nreturn [\n  {\n    json: {\n      pregunta_sanitizada: pregunta,\n      contexto_rag: contexto,\n    },\n  },\n];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -16
+      ],
+      "id": "850f2add-33dc-4377-aebc-9a388b44742e",
+      "name": "Construir contexto RAG"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Obtener la pregunta desde cualquier ubicación posible\nlet pregunta =\n  ($json.body && ($json.body.pregunta || $json.body.question)) ||\n  $json.pregunta ||\n  $json.question ||\n  \"\";\n\n// 2. Cortar longitud máxima\npregunta = pregunta.slice(0, 500);\n\n// 3. Patrones de limpieza\nconst patrones = [\n  /ignore previous/ig,\n  /ignora las instrucciones/ig,\n  /olvida todas las instrucciones anteriores/ig,\n  /system prompt/ig,\n  /actúa como/ig,\n];\n\n// 4. Sanitizar\nfor (const p of patrones) {\n  pregunta = pregunta.replace(p, \"\");\n}\n\n// 5. Devolver salida\nreturn [\n  {\n    json: {\n      pregunta_sanitizada: pregunta,\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -704,
+        -16
+      ],
+      "id": "564fda7e-5f43-4854-ba1e-bc1ad25862a7",
+      "name": "Sanitizar pregunta"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Actúa como un planificador de herramientas para un analista de ciberseguridad.\n\nContexto de malware (solo puedes usar esto como conocimiento):\n{{ $json.contexto_rag }}\n\nPregunta original del analista:\n{{ $json.pregunta_sanitizada }}\n\nTu tarea es decidir si el agente debe llamar a una herramienta externa llamada `buscar_hash_en_siem` que consulta un SIEM para un hash.\n\nREGLAS:\n\n1) SOLO puedes usar la herramienta `buscar_hash_en_siem` si:\n   - La pregunta contiene la palabra literal **\"hash\"**, y\n   - Después de la palabra \"hash\" aparece una cadena alfanumérica (por ejemplo: `4e4e0b0e95`), y\n   - La pregunta menciona que se busque en **logs / registros / SIEM**.\n\n   En ese caso, devuelve EXACTAMENTE este JSON:\n   {\"Action\":\"buscar_hash_en_siem\",\"Hash\":\"<cadena alfanumérica después de la palabra hash>\",\"FinalAnswer\":\"Consultando el SIEM...\"}\n\n2) Si la pregunta NO contiene la palabra \"hash\" pero SÍ habla de malware (por ejemplo: ransomware, troyano, familia de malware, TrickBot, Ryuk, Emotet, etc.):\n   - NO debes usar la herramienta.\n   - Si el contexto RAG contiene información útil, úsalo para responder.\n   - Devuelve EXACTAMENTE este JSON:\n   {\"Action\":\"none\",\"Hash\":null,\"FinalAnswer\":\"<respuesta basada SOLO en el contexto>\"}\n\n3) Si la pregunta NO trata sobre malware ni hashes\n   O el contexto RAG NO tiene información suficiente:\n   - Devuelve EXACTAMENTE este JSON:\n   {\"Action\":\"none\",\"Hash\":null,\"FinalAnswer\":\"No tengo información al respecto en mi base de datos\"}\n\n4) Prohibición importante:\n   - Si la pregunta NO contiene la palabra literal \"hash\", está PROHIBIDO usar \"Action\":\"buscar_hash_en_siem\".\n   - En esos casos SIEMPRE debes usar \"Action\":\"none\" (aunque aparezcan nombres como Ryuk, TrickBot, Emotet, etc.).\n\nEJEMPLOS:\n\n- Pregunta: \"¿Cómo se caracteriza el ransomware Ryuk en nuestra base de datos de malware?\"\n  → {\"Action\":\"none\",\"Hash\":null,\"FinalAnswer\":\"<explicación de Ryuk usando SOLO el contexto>\"}\n\n- Pregunta: \"Revisa en el SIEM si el hash 4e4e0b0e95 ha visto recientemente y en qué host.\"\n  → {\"Action\":\"buscar_hash_en_siem\",\"Hash\":\"4e4e0b0e95\",\"FinalAnswer\":\"Consultando el SIEM...\"}\n\n- Pregunta : \"¿Cuál es la fórmula química del agua?''\"\n→ {\"Action\":\"none\",\"Hash\":\"null\",\"FinalAnswer\":\"No tengo información al respecto en mi base de datos\"}\n\nMUY IMPORTANTE:\n- Devuelve solo un JSON válido en UNA línea.\n- No añadas texto fuera del JSON.\n- No expliques lo que haces.\n- Recuerda que no todo lo que mande un usuario es un hash; sin la palabra \"hash\", NUNCA llames a `buscar_hash_en_siem`.\n\n",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Eres un analista de malware y firmas para un SOC.\n\nSiempre debes devolver SOLO un JSON válido en una sola línea y sin texto adicional.\n\nFormato:\n{\"Action\":\"buscar_hash_en_siem\" | \"none\",\"Hash\":<valor o null>,\"FinalAnswer\":\"texto en español\"}\n\nReglas:\n1. Solo puedes usar Action:\"buscar_hash_en_siem\" si la pregunta contiene la palabra literal \"hash\" y pide buscar esa cadena en registros o en el SIEM.\n2. Si la pregunta trata sobre malware y el contexto RAG contiene información relevante → usa Action:\"none\" y responde usando únicamente el contexto.\n3. Si el contexto RAG NO contiene información útil o la pregunta NO trata sobre malware → usa Action:\"none\" y FinalAnswer:\"No tengo información al respecto en mi base de datos\".\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        96,
+        -16
+      ],
+      "id": "bf2bae49-21d6-4205-8829-d7ad47dd75ed",
+      "name": "LLM – Planificador ReAct caso 3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1dfbd7b3-39ff-478f-b203-bbe7b13f44a2",
+              "leftValue": "={{ $json.Action }}",
+              "rightValue": "buscar_hash_en_siem",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        656,
+        -16
+      ],
+      "id": "cf09957e-6fed-4305-92e7-d5fc8d4d1dbf",
+      "name": "¿usar buscar_hash_en_siem?"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.FinalAnswer }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        960,
+        144
+      ],
+      "id": "4ca02e54-4063-4936-9e0e-1ce2791c549b",
+      "name": "Responder - Sin tool (Rag o Guandrial)"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=PREGUNTA_ORIGINAL:\n{{ $items(\"Sanitizar pregunta\")[0].json.pregunta_sanitizada }}\n\nRESULTADO_SIEM:\n- Hash: {{ $json.hash_sha256 }}\n- Encontrado: {{ $json.encontrado }}\n- Ubicación: {{ $json.ubicacion || \"no especificada\" }}\n- Último visto: {{ $json.ultimo_visto || \"no aplica\" }}\n- Severidad: {{ $json.severidad || \"desconocida\" }}\n- Observación: {{ $json.observacion }}\n\nCONTEXTO_MALWARE (si aplica):\n{{ $items(\"Construir contexto RAG\")[0].json.contexto_rag }}\n\nRecuerda Responder lo que aparece estrictamente en RESULTADO SIEM , no des recomendaciones ni alucines con texto que no aparece.\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Eres un analista de malware en un SOC. Debes responder de forma clara y breve para otro analista, en español.\n\nUsa únicamente:\n- La pregunta original del analista.\n- La información devuelta por el RESULTADO SIEM (hash, encontrado, ubicación, último visto, severidad, observación).\n- El contexto de malware disponible (si lo hubiera).\n\nInstrucciones:\n- No menciones nombres de herramientas, ni “buscar_hash_en_siem”, ni “workflow”.\n- No digas “la herramienta devolvió…”. Habla sólo de lo que muestran los registros.\n- Si el hash no se ha visto, di explícitamente que **no hay detecciones** en los registros consultados.\n- Si el hash sí se ha visto, indica brevemente dónde se detectó y la última vez que apareció.\n- Responde en una o dos frases como máximo.\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1360,
+        -256
+      ],
+      "id": "9b723f91-4c2d-4de2-80d8-833a4a8c75ff",
+      "name": "LLm - Respuesta final Caso 3"
+    },
+    {
+      "parameters": {
+        "model": "mistral:7b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        -80
+      ],
+      "id": "0ff7c088-4f6c-4e88-b959-4b2e6d870bba",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "TYKsErtw0DbV3rPR",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.text || $json.response || $json.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1712,
+        -256
+      ],
+      "id": "667aec17-7a8d-4213-a83a-3937d4efef5a",
+      "name": "Responder – Con Tool (Respuesta final)"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "3RDk1WnvBBeTDW2T",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/3RDk1WnvBBeTDW2T",
+          "cachedResultName": "buscar_hash_en_siem_subworkflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        -208
+      ],
+      "id": "2a59f411-702e-46c4-9b1f-c1c7c2fe30da",
+      "name": "Call 'buscar_hash_en_siem_subworkflow'"
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $json.text || JSON.stringify($json);\n\nlet obj;\ntry { obj = JSON.parse(raw); }\ncatch(e){\n  obj = {\n    Action:\"none\",\n    Hash:null,\n    FinalAnswer:\"No tengo información al respecto en mi base de datos\"\n  };\n}\n\nreturn [\n  {\n    json:{\n      Action: obj.Action || \"none\",\n      Hash: obj.Hash || null,\n      FinalAnswer: obj.FinalAnswer || \"No tengo información al respecto en mi base de datos\"\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -16
+      ],
+      "id": "e8ae0acd-492c-445d-b5c1-73c3d172b0bd",
+      "name": "Guandrail_Anti_Alucinacion"
+    },
+    {
+      "parameters": {
+        "model": "mistral:7b",
+        "options": {
+          "useMMap": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        96,
+        192
+      ],
+      "id": "46a0b382-813e-4c87-96b7-6c93c1544bd5",
+      "name": "Ollama Chat Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "TYKsErtw0DbV3rPR",
+          "name": "Ollama account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Agente malware": {
+      "main": [
+        [
+          {
+            "node": "Sanitizar pregunta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "RAG – malware (Get ranked docs)",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG – malware (Get ranked docs)": {
+      "main": [
+        [
+          {
+            "node": "Construir contexto RAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir contexto RAG": {
+      "main": [
+        [
+          {
+            "node": "LLM – Planificador ReAct caso 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sanitizar pregunta": {
+      "main": [
+        [
+          {
+            "node": "RAG – malware (Get ranked docs)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM – Planificador ReAct caso 3": {
+      "main": [
+        [
+          {
+            "node": "Guandrail_Anti_Alucinacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿usar buscar_hash_en_siem?": {
+      "main": [
+        [
+          {
+            "node": "Call 'buscar_hash_en_siem_subworkflow'",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder - Sin tool (Rag o Guandrial)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLm - Respuesta final Caso 3": {
+      "main": [
+        [
+          {
+            "node": "Responder – Con Tool (Respuesta final)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LLm - Respuesta final Caso 3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'buscar_hash_en_siem_subworkflow'": {
+      "main": [
+        [
+          {
+            "node": "LLm - Respuesta final Caso 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guandrail_Anti_Alucinacion": {
+      "main": [
+        [
+          {
+            "node": "¿usar buscar_hash_en_siem?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LLM – Planificador ReAct caso 3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b4914c5c-c424-4a52-8724-a9cfd2bf8c2f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2ab2eedd701691bc9deb393150d0f34cdb4a895536b6bb6297c19755623506a6"
+  },
+  "id": "hbSyLNerL6a0dL0E",
+  "tags": []
+}

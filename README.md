@@ -40,9 +40,9 @@ Nota : En config.js se configura el webhook que en este caso seria el de mi work
 
 ## Agregar Flujos al N8N
 
-1) Abrir la carpeta de PY/_cASO3/workflows
+1) Abrir la carpeta de PY_Caso3/Workflows.
    
-3) Crear 3 flujos nuevos en n8n, click en import from file e importar los 3 archivos que estan dentro de la carpeta (Cada uno en flujos diferentes)
+3) Crear 3 flujos nuevos en n8n, click en import from file e importar los 3 archivos que estan dentro de la carpeta (Cada uno en flujos diferentes).
 
 ## 🧪 Pasos para probar todo el proyecto:
 

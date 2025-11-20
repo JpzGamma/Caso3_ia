@@ -8,7 +8,7 @@ Interfaz web sencilla para enviar preguntas a un flujo de n8n mediante un webhoo
 
 -Extensión Live Server
 
--Navegador moderno
+-Navegador 
 
 -Webhook de n8n funcionando
 
@@ -20,7 +20,7 @@ cd Caso3_ia.git
 
 code .
 
-## Ejecutar el proyecto localmente (Live Server)
+## Instalar  (Live Server)
 
 1) Abre la carpeta del repositorio en Visual Studio Code.
 
@@ -37,6 +37,12 @@ code .
 La interfaz se abrirá automáticamente en el navegador predeterminado
 
 Nota : En config.js se configura el webhook que en este caso seria el de mi workflow Caso 3 sin http
+
+## Agregar Flujos al N8N
+
+1) Abrir la carpeta de PY/_cASO3/workflows
+   
+3) Crear 3 flujos nuevos en n8n, click en import from file e importar los 3 archivos que estan dentro de la carpeta (Cada uno en flujos diferentes)
 
 ## 🧪 Pasos para probar todo el proyecto:
 
@@ -59,3 +65,5 @@ Nota : En config.js se configura el webhook que en este caso seria el de mi work
 -Revisa en el SIEM si el hash 9a8b7c6d5e se ha visto recientemente y en qué host.
 
 -¿Cómo se caracteriza el ransomware Ryuk en nuestra base de datos de malware?
+
+6) Click en enviar pregunta y esperar el resultado.
